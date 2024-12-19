@@ -1,1 +1,15 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
 
+.table-container {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.sticky-header {
+  position: sticky;
+  left: 0;
+  background-color: white;
+  z-index: 10;
+}
