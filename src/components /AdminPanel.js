@@ -2,53 +2,58 @@ import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 
 const AdminPanel = () => {
-  const [isUploading, setIsUploading] = useState(false);
-  const [status, setStatus] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState(null);
 
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
-    setIsUploading(true);
-    setStatus('Traitement du fichier...');
-
     try {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
-        
-        // Ici, vous pouvez ajouter la logique pour sauvegarder les données
-        console.log('Données traitées:', jsonData);
-        
-        setStatus('Fichier traité avec succès!');
-      };
-      reader.readAsArrayBuffer(file);
+      setUploading(true);
+      
+      // Lire le fichier Excel
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data, { type: 'array' });
+      
+      // Convertir en JSON
+      const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+      const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+
+      // TODO: Implémenter la sauvegarde des données
+      console.log('Données chargées:', jsonData);
+      
+      setLastUpdate(new Date().toLocaleString());
     } catch (error) {
-      setStatus('Erreur: ' + error.message);
+      console.error('Erreur lors du chargement:', error);
+      alert('Erreur lors du chargement du fichier');
     } finally {
-      setIsUploading(false);
+      setUploading(false);
     }
   };
 
   return (
-    <div className="space-y-4">
+    <div className="p-4">
       <h2 className="text-xl font-bold mb-4">Administration</h2>
       
-      <div className="border rounded p-4">
-        <h3 className="font-medium mb-2">Mise à jour des données</h3>
-        <input
-          type="file"
-          accept=".xlsx,.xls"
-          onChange={handleFileUpload}
-          disabled={isUploading}
-          className="block w-full text-sm text-gray-500 mb-4"
-        />
-        {status && (
-          <div className="text-sm text-gray-600">
-            {status}
-          </div>
+      <div className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Mettre à jour les données
+          </label>
+          <input
+            type="file"
+            accept=".xlsx,.xls"
+            onChange={handleFileUpload}
+            disabled={uploading}
+            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+          />
+        </div>
+
+        {lastUpdate && (
+          <p className="text-sm text-gray-500">
+            Dernière mise à jour : {lastUpdate}
+          </p>
         )}
       </div>
     </div>
