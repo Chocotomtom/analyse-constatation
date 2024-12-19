@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import _ from 'lodash';
-
+import { loadData } from '../utils/dataManager';
 const CompetenceSecteur = () => {
   const [data, setData] = useState([]);
   const [types, setTypes] = useState([]);
@@ -10,18 +10,14 @@ const CompetenceSecteur = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    // Cette fonction sera utilisée pour charger les données depuis le fichier JSON
-    const loadData = async () => {
-      try {
-        const response = await fetch('/data/competences.json');
-        if (!response.ok) {
-          throw new Error('Erreur lors du chargement des données');
-        }
-        const jsonData = await response.json();
-        
+useEffect(() => {
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const data = await loadData();
+      if (data) {
         // Transformer les données pour l'affichage
-        const transformedData = jsonData.map(row => ({
+        const transformedData = data.map(row => ({
           type: row['Type '],
           entreprise: row['Nom '],
           categorie: row['Catégorie compétence'],
@@ -32,13 +28,16 @@ const CompetenceSecteur = () => {
         const uniqueTypes = [...new Set(transformedData.map(row => row.type))].filter(Boolean);
         setTypes(uniqueTypes);
         setData(transformedData);
-      } catch (err) {
-        setError(err.message);
       }
-    };
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    loadData();
-  }, [departments]);
+  fetchData();
+}, [departments]);
 
   if (loading) return <div className="text-center p-4">Chargement...</div>;
   if (error) return <div className="text-red-500 p-4">Erreur: {error}</div>;
